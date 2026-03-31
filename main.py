@@ -18,6 +18,7 @@ bmp = BMP180()
 def background_thread():
     while True:
         socketio.sleep(1)
+        barometricPressure = bmp.get_pressure()
         socketio.emit(
             'update_data',
             {
