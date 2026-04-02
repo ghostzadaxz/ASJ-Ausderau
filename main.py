@@ -24,8 +24,11 @@ from bmp180 import BMP180
 bmp_sensor = BMP180()
 
 @socketio.on('bmpButton')
-def get_bmp():
-    return True
+def get_bmp(msg):
+    if msg[start]:
+        return True
+    else:
+        return False
 
 @socketio.on('setZero')
 def zero():
@@ -44,11 +47,10 @@ def background_thread():
                 socketio.emit(
                     'update_bmp',
                     {
-                        'bmp': bmp
+                        'bmp': bmp,
                         'altitude': altitude
                     }
                 )
-        if 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
         
