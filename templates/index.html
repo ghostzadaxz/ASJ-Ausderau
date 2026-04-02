@@ -28,7 +28,7 @@
             
             var bmpButton = document.getElementById('bmpButton');
             bmpButton.addEventListener('click', function() {
-                socket.emit('bmpButton')});
+                socket.emit('bmpButton'), start = true});
 
             socket.on('update_bmp', function(msg) {
                 var bmpSpan = document.getElementById('bmp');                //assign var and gets ID previously defined (connects html & js by identification)
