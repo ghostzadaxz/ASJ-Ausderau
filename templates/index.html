@@ -11,6 +11,11 @@
     <p><b>Current altitude: </b> <span id="altitude">Loading...</span> m</p>
     <button id="setZero">Set zero altitude</button>
     <button id="bmpButton">Measure barometric pressure</button>
+    <p><b>Acceleration: </b> <span id="acc">Loading...</span> m/s²</p>
+    <p><b>Angle: </b> <span id="angle">Loading...</span> °</p>
+    <button id="gyroButton">Measure acceleration & angle</button>
+    <p><b>Object's distance: </b> <span id="prox">Loading...</span> cm</p>
+    <button id="proxButton">Measure distance</button>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -37,7 +42,28 @@
                 altitudeSpan.textContent = msg.altitude;
 
             // GYRO
+            
+            var gyroButton = document.getElementById('gyroButton');
+            gyroButton.addEventListener('click', function() {
+                socket.emit('gyroButton')});
 
+            socket.on('update_bmp', function(msg) {
+                var accSpan = document.getElementById('acc');
+                accSpan.textContent = msg.acc});  
+                var angleSpan = document.getElementById('angle');
+                angleSpan.textContent = msg.angle;
+
+            // PROXIMITY
+
+            var proxButton = document.getElementById('proxButton');
+            proxButton.addEventListener('click', function() {
+                socket.emit('proxButton')});
+
+            socket.on('update_bmp', function(msg) {
+                var proxSpan = document.getElementById('prox');
+                proxSpan.textContent = msg.prox});
+
+            // 
             
         });
     </script>
