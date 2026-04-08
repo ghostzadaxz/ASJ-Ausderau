@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Aerospace Jam Example</title>
+    <title>ASJ Asgard Air Force</title>
     <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
 </head>
 <body>
-    <h1>Aerospace Jam Example</h1>
-    <button id="stopButton">Stop action</button>
+    <h1>Asgard Air Force – Command Tower</h1><br>
+    <button id="stopButton">Stop action</button><br><br>
     <p><b>Barometric pressure: </b> <span id="bmp">Loading...</span> hPa</p>
     <p><b>Current altitude: </b> <span id="altitude">Loading...</span> m</p>
     <button id="setZero">Set zero altitude</button>
-    <button id="bmpButton">Measure barometric pressure</button>
+    <button id="bmpButton">Measure barometric pressure</button><br><br>
     <p><b>Acceleration: </b> <span id="acc">Loading...</span> m/s²</p>
     <p><b>Angle: </b> <span id="angle">Loading...</span> °</p>
-    <button id="gyroButton">Measure acceleration & angle</button>
+    <button id="gyroButton">Measure acceleration & angle</button><br><br>
     <p><b>Object's distance: </b> <span id="prox">Loading...</span> cm</p>
-    <button id="proxButton">Measure distance</button>
+    <button id="proxButton">Measure distance</button><br><br>
+    <p><b>Camera: </b> <span id="cam">Loading...</span> </p>
+    <button id="picButton">Take a picture</button>
+    <button id="liveButton">Live recording</button>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -47,7 +50,7 @@
             gyroButton.addEventListener('click', function() {
                 socket.emit('gyroButton')});
 
-            socket.on('update_bmp', function(msg) {
+            socket.on('update_gyro', function(msg) {
                 var accSpan = document.getElementById('acc');
                 accSpan.textContent = msg.acc});  
                 var angleSpan = document.getElementById('angle');
@@ -59,11 +62,23 @@
             proxButton.addEventListener('click', function() {
                 socket.emit('proxButton')});
 
-            socket.on('update_bmp', function(msg) {
+            socket.on('update_prox', function(msg) {
                 var proxSpan = document.getElementById('prox');
                 proxSpan.textContent = msg.prox});
 
-            // 
+            // CAMERA
+
+            var picButton = document.getElementById('picButton');
+            picButton.addEventListener('click', function() {
+                socket.emit('picButton')});
+            
+            var liveButton = document.getElementById('liveButton');
+            liveButton.addEventListener('click', function() {
+                socket.emit('liveButton')});
+
+            socket.on('update_cam', function(msg) {
+                var camSpan = document.getElementById('cam');
+                camSpan.textContent = msg.cam});
             
         });
     </script>
