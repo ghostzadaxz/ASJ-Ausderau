@@ -18,6 +18,8 @@ def index():
 stop = False
 bmp_runner = False
 gyro_runner = False
+prox_runner = False
+map_runner = False
 
 @socketio.on('stopButton')
 def stop():
@@ -51,6 +53,23 @@ pos_log = [(0, 0, 0),]
 @socketio.on('gyroButton')
 def get_gyro():
     global gyro_runner = True
+
+# PROX
+
+from tfluna import TFLuna
+
+prox_sensor = TFLuna()
+tfluna.open()
+tfluna.set_samp_rate(5)
+dist_log = []
+
+@socketio.on('proxButton')
+def get_prox():
+    global prox_runner = True
+
+@socketio.on('mapButton')
+def get_map():
+    global map_runner = True
 
 # Runs in the background to transmit data to connected clients.
 def background_thread():
@@ -114,6 +133,17 @@ def background_thread():
                         
                     }
                 )
+
+        if prox_runner:
+            while True:
+                if stop:
+                    stop = False
+                    prox_runner = False
+                    break
+                for i in range(2):
+                    prox, _, _ = tfluna.read()
+                    prox = round(prox * 100.0, 2)
+                    
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
         
