@@ -13,8 +13,11 @@ def index():
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# MAIN
+
 stop = False
 bmp_runner = False
+gyro_runner = False
 
 @socketio.on('stopButton')
 def stop():
@@ -25,6 +28,7 @@ def stop():
 from bmp180 import BMP180
 
 bmp_sensor = BMP180()
+alt_log = []
 
 @socketio.on('bmpButton')
 def get_bmp():
@@ -32,7 +36,19 @@ def get_bmp():
 
 @socketio.on('setZero')
 def zero():
-    zero_bmp = bmp_sensor.get_pressure()
+    global zero_bmp = bmp_sensor.get_pressure()
+
+# GYRO
+
+from mpu6050 import mpu6050
+
+gyro = mpu6050(0x68)
+acc_log = []
+angle_log = []
+
+@socketio.on('gyroButton')
+def get_gyro():
+    global gyro_runner = True
 
 # Runs in the background to transmit data to connected clients.
 def background_thread():
@@ -45,12 +61,38 @@ def background_thread():
                     break
                 socketio.sleep(1)
                 bmp = bmp_sensor.get_pressure() / 100
-                altitude = bmp_sensor.get_altitude(sea_level_pressure = zero_bmp)
+                if zero_bmp:
+                    altitude = bmp_sensor.get_altitude(sea_level_pressure = zero_bmp)
+                    alt_log.append(altitude)
                 socketio.emit(
                     'update_bmp',
                     {
                         'bmp': bmp,
-                        'altitude': altitude
+                        'altitude': altitude,          # possible error due to inexistent values (if so, create 2 different path for "emit" with "if" statement)
+                        'altLog': alt_log             # possible error due to conversion list/tuple to array
+                    }
+                )
+                
+        if gyro_runner:
+            while True:
+                if stop:
+                    stop == False
+                    gyro_runner == False
+                    break
+                socketio.sleep(1)
+                acc = gyro.get_accel_data()
+                acc_data = (acc['x'], acc['y'], acc['z'])
+                acc_log.append(acc_data)
+                angle = gyro.get_gyro_data()
+                angle_data = (angle['x'], angle['y'], angle['z'])
+                angle_log.append(angle_data)
+                socketio.emit(
+                    'update_gyro',
+                    {
+                        'acc': acc,
+                        'accLog': acc_log,            # possible error due to conversion list/tuple to array
+                        'angle': angle,
+                        'angleLog': angle_log         # possible error due to conversion list/tuple to array
                     }
                 )
 
