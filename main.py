@@ -43,8 +43,10 @@ def zero():
 from mpu6050 import mpu6050
 
 gyro = mpu6050(0x68)
-acc_log = []
-angle_log = []
+acc_log = [(0, 0, 0),]
+angle_log = [(0, 0, 0),]
+vel_log = [(0, 0, 0),]
+pos_log = [(0, 0, 0),]
 
 @socketio.on('gyroButton')
 def get_gyro():
@@ -59,7 +61,7 @@ def background_thread():
                     stop = False
                     bmp_runner = False
                     break
-                socketio.sleep(1)
+                socketio.sleep(2)
                 bmp = bmp_sensor.get_pressure() / 100
                 if zero_bmp:
                     altitude = bmp_sensor.get_altitude(sea_level_pressure = zero_bmp)
@@ -76,16 +78,26 @@ def background_thread():
         if gyro_runner:
             while True:
                 if stop:
-                    stop == False
-                    gyro_runner == False
+                    stop = False
+                    gyro_runner = False
                     break
-                socketio.sleep(1)
+                socketio.sleep(2)
                 acc = gyro.get_accel_data()
                 acc_data = (acc['x'], acc['y'], acc['z'])
                 acc_log.append(acc_data)
+                
                 angle = gyro.get_gyro_data()
                 angle_data = (angle['x'], angle['y'], angle['z'])
                 angle_log.append(angle_data)
+                
+                #INTEGRATION
+                x_vel = vel_log[-1][0] + ((acc_log[-2][0] + acc_log[-1][0]) / 2) * 2
+                y_vel = vel_log[-1][1] + ((acc_log[-2][1] + acc_log[-1][1]) / 2) * 2
+                z_vel = vel_log[-1][2] + ((acc_log[-2][2] + acc_log[-1][2]) / 2) * 2
+                vel_data = (x_vel, y_vel, z_vel)
+                vel_log.append(vel_data)
+                
+                
                 socketio.emit(
                     'update_gyro',
                     {
