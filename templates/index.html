@@ -16,14 +16,17 @@
     
     <p><b>Acceleration: </b> <span id="acc">Loading...</span> m/s²</p>
     <p><b><i> &emsp; Acceleration log: </i></b> <span id="accLog">Loading...</span> </p>
-    <p><b>Angle: </b> <span id="angle">Loading...</span> °</p>
-    <p><b><i> &emsp; Angle log: </i></b> <span id="angleLog">Loading...</span> </p>
+    <p><b>Rate of rotation: </b> <span id="dps">Loading...</span> °/s</p>
+    <p><b><i> &emsp; Rate of rotation log: </i></b> <span id="dpsLog">Loading...</span> </p>
     <p><b>Current position: </b> <span id="pos">Loading...</span> </p>
     <p><b><i> &emsp; Position log: </i></b> <span id="posLog">Loading...</span> </p>
     <button id="gyroButton">Measure acceleration & angle</button><br><br>
     
     <p><b>Object's distance: </b> <span id="prox">Loading...</span> cm</p>
     <button id="proxButton">Measure distance</button><br><br>
+    <p><b>Sum of distances: </b> <span id="sum">Loading...</span> cm</p>
+    <button id="sumButton">Sum distances</button><br><br>
+
     
     <p><b>Camera: </b> <span id="cam">Loading...</span> </p>
     <button id="picButton">Take a picture</button>
@@ -64,14 +67,14 @@
             socket.on('update_gyro', function(msg) {
                 var accSpan = document.getElementById('acc');
                 accSpan.textContent = msg.acc;  
-                var angleSpan = document.getElementById('angle');
-                angleSpan.textContent = msg.angle;
+                var dpsSpan = document.getElementById('dps');
+                dpsSpan.textContent = msg.dps;
                 var posSpan = document.getElementById('pos');
                 posSpan.textContent = msg.pos;
                 var accLogSpan = document.getElementById('accLog');
                 accLogSpan.textContent = msg.accLog;                        //possible error due to 'msg' being a list/array
-                var angleLogSpan = document.getElementById('angleLog');
-                angleLogSpan.textContent = msg.angleLog});                  //possible error due to 'msg' being a list/array
+                var dpsLogSpan = document.getElementById('dpsLog');
+                dpsLogSpan.textContent = msg.dpsLog});                  //possible error due to 'msg' being a list/array
                 var posLogSpan = document.getElementById('posLog');
                 posLogSpan.textContent = msg.posLog;
 
