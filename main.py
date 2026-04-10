@@ -19,6 +19,7 @@ stop = False
 bmp_runner = False
 gyro_runner = False
 prox_runner = False
+sum = False
 map_runner = False
 
 @socketio.on('stopButton')
@@ -46,7 +47,7 @@ from mpu6050 import mpu6050
 
 gyro = mpu6050(0x68)
 acc_log = [(0, 0, 0),]
-angle_log = [(0, 0, 0),]
+dps_log = [(0, 0, 0),]
 vel_log = [(0, 0, 0),]
 pos_log = [(0, 0, 0),]
 
@@ -62,10 +63,15 @@ prox_sensor = TFLuna()
 tfluna.open()
 tfluna.set_samp_rate(5)
 dist_log = []
+map_data = []
 
 @socketio.on('proxButton')
 def get_prox():
     global prox_runner = True
+
+@socketio.on('sumButton')
+def get_prox():
+    global sum = True
 
 @socketio.on('mapButton')
 def get_map():
@@ -105,9 +111,9 @@ def background_thread():
                 acc_data = (acc['x'], acc['y'], acc['z'])
                 acc_log.append(acc_data)
                 
-                angle = gyro.get_gyro_data()
-                angle_data = (angle['x'], angle['y'], angle['z'])
-                angle_log.append(angle_data)
+                dps = gyro.get_gyro_data()
+                dps_data = (dps['x'], dps['y'], dps['z'])
+                dps_log.append(dps_data)
                 
                 #INTEGRATION
                 x_vel = vel_log[-1][0] + ((acc_log[-2][0] + acc_log[-1][0]) / 2) * 2
@@ -126,24 +132,48 @@ def background_thread():
                     {
                         'acc': acc,
                         'accLog': acc_log,            # possible error due to conversion list/tuple to array
-                        'angle': angle,
-                        'angleLog': angle_log,         # possible error due to conversion list/tuple to array
+                        'dps': dps,
+                        'dpsLog': dps_log,         # possible error due to conversion list/tuple to array
                         'pos': pos_data,
                         'posLog': pos_log
-                        
                     }
                 )
 
         if prox_runner:
+            prox, _, _ = tfluna.read()
+            prox = round(prox * 100.0, 2)
+            dist_log.append(prox)
+            prox_runner = False
+            socketio.emit(
+                'update_prox',
+                {
+                    'prox': prox
+                }
+            )
+
+        if sum:
+            dist_sum = dist_log[-2] + dist_log[-1]
+            sum = False
+            socketio.emit(
+                'update_sum',
+                {
+                    'sum': dist_sum
+                }
+            )
+
+        if map_runner:
             while True:
                 if stop:
                     stop = False
-                    prox_runner = False
+                    map_runner = False
                     break
-                for i in range(2):
-                    prox, _, _ = tfluna.read()
-                    prox = round(prox * 100.0, 2)
-                    
+                socketio.sleep(1)
+                rad, _, _ = tfluna.read()
+                rad = round(rad * 100.0, 2)
+                #theta = gyro.get_gyro_data()
+                #theta_data = (theta['x'], theta['y'], theta['z'])
+                #map_data.append((rad, theta))
+                
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
         
