@@ -17,6 +17,7 @@ def index():
 
 stop = False
 bmp_runner = False
+zero_bmp = 0
 gyro_runner = False
 prox_runner = False
 sum = False
@@ -24,7 +25,8 @@ map_runner = False
 
 @socketio.on('stopButton')
 def stop():
-    global stop = True
+    global stop
+    stop = True
 
 # BMP
 
@@ -35,11 +37,13 @@ alt_log = []
 
 @socketio.on('bmpButton')
 def get_bmp():
-    global bmp_runner = True
+    global bmp_runner
+    bmp_runner = True
 
 @socketio.on('setZero')
 def zero():
-    global zero_bmp = bmp_sensor.get_pressure()
+    global zero_bmp
+    zero_bmp = bmp_sensor.get_pressure()
 
 # GYRO
 
@@ -53,8 +57,9 @@ pos_log = [(0, 0, 0),]
 
 @socketio.on('gyroButton')
 def get_gyro():
-    global gyro_runner = True
-
+    global gyro_runner
+    gyro_runner = True
+'''
 # PROX
 
 from tfluna import TFLuna
@@ -67,18 +72,30 @@ map_data = []
 
 @socketio.on('proxButton')
 def get_prox():
-    global prox_runner = True
+    global prox_runner
+    prox_runner = True
 
 @socketio.on('sumButton')
 def get_prox():
-    global sum = True
+    global sum
+    sum = True
 
 @socketio.on('mapButton')
 def get_map():
-    global map_runner = True
-
+    global map_runner
+    map_runner = True
+'''
 # Runs in the background to transmit data to connected clients.
 def background_thread():
+    
+    global stop
+    global bmp_runner
+    global zero_bmp
+    global gyro_runner
+    global prox_runner
+    global sum
+    global map_runner
+    
     while True:
         if bmp_runner:
             while True:
@@ -86,33 +103,40 @@ def background_thread():
                     stop = False
                     bmp_runner = False
                     break
-                socketio.sleep(2)
+                socketio.sleep(5)
                 bmp = bmp_sensor.get_pressure() / 100
-                if zero_bmp:
+                if zero_bmp != 0:
                     altitude = bmp_sensor.get_altitude(sea_level_pressure = zero_bmp)
+                    altitude = round(altitude, 2)
                     alt_log.append(altitude)
+                    socketio.emit(
+                        'update_alt',
+                        {
+                            'altitude': altitude,
+                            'altLog': alt_log
+                            }
+                        )
+                            
                 socketio.emit(
                     'update_bmp',
                     {
-                        'bmp': bmp,
-                        'altitude': altitude,          # possible error due to inexistent values (if so, create 2 different path for "emit" with "if" statement)
-                        'altLog': alt_log             # possible error due to conversion list/tuple to array
-                    }
-                )
-                
+                        'bmp': bmp
+                        }
+                    )
+        
         if gyro_runner:
             while True:
                 if stop:
                     stop = False
                     gyro_runner = False
                     break
-                socketio.sleep(2)
+                socketio.sleep(5)
                 acc = gyro.get_accel_data()
-                acc_data = (acc['x'], acc['y'], acc['z'])
+                acc_data = (round(acc['x'], 2), round(acc['y'], 2), round(acc['z'], 2))
                 acc_log.append(acc_data)
                 
                 dps = gyro.get_gyro_data()
-                dps_data = (dps['x'], dps['y'], dps['z'])
+                dps_data = (round(dps['x'], 2), round(dps['y'], 2), round(dps['z'], 2))
                 dps_log.append(dps_data)
                 
                 #INTEGRATION
@@ -124,15 +148,15 @@ def background_thread():
                 x_pos = pos_log[-1][0] + ((vel_log[-2][0] + vel_log[-1][0]) / 2) * 2
                 y_pos = pos_log[-1][1] + ((vel_log[-2][1] + vel_log[-1][1]) / 2) * 2
                 z_pos = pos_log[-1][2] + ((vel_log[-2][2] + vel_log[-1][2]) / 2) * 2
-                pos_data = (x_pos, y_pos, z_pos)
+                pos_data = (round(x_pos, 2), round(y_pos, 2), round(z_pos, 2))
                 pos_log.append(pos_data)
                 
                 socketio.emit(
                     'update_gyro',
                     {
-                        'acc': acc,
+                        'acc': acc_data,
                         'accLog': acc_log,            # possible error due to conversion list/tuple to array
-                        'dps': dps,
+                        'dps': dps_data,
                         'dpsLog': dps_log,         # possible error due to conversion list/tuple to array
                         'pos': pos_data,
                         'posLog': pos_log
@@ -185,7 +209,7 @@ def handle_connect():
 
 def main():
     # These specific arguments are required to make sure the webserver is hosted in a consistent spot, so don't change them unless you know what you're doing.
-    socketio.run(app, host='0.0.0.0', port=90, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=80, allow_unsafe_werkzeug=True)
     
 if __name__ == '__main__':
     main()

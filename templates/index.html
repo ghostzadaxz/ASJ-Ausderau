@@ -14,17 +14,17 @@
     <button id="setZero">Set zero altitude</button>
     <button id="bmpButton">Measure barometric pressure</button><br><br>
     
-    <p><b>Acceleration: </b> <span id="acc">Loading...</span> m/s²</p>
+    <p><b>Acceleration (x, y, z): </b> <span id="acc">Loading...</span> m/s²</p>
     <p><b><i> &emsp; Acceleration log: </i></b> <span id="accLog">Loading...</span> </p>
-    <p><b>Rate of rotation: </b> <span id="dps">Loading...</span> °/s</p>
+    <p><b>Rate of rotation (x, y, z): </b> <span id="dps">Loading...</span> °/s</p>
     <p><b><i> &emsp; Rate of rotation log: </i></b> <span id="dpsLog">Loading...</span> </p>
-    <p><b>Current position: </b> <span id="pos">Loading...</span> </p>
+    <p><b>Current position (x, y, z): </b> <span id="pos">Loading...</span> </p>
     <p><b><i> &emsp; Position log: </i></b> <span id="posLog">Loading...</span> </p>
-    <button id="gyroButton">Measure acceleration & angle</button><br><br>
+    <button id="gyroButton">Measure acceleration, rate of rotation & position</button><br><br>
     
     <p><b>Object's distance: </b> <span id="prox">Loading...</span> cm</p>
-    <button id="proxButton">Measure distance</button><br><br>
     <p><b>Sum of distances: </b> <span id="sum">Loading...</span> cm</p>
+    <button id="proxButton">Measure distance</button>
     <button id="sumButton">Sum distances</button><br><br>
 
     
@@ -52,7 +52,9 @@
 
             socket.on('update_bmp', function(msg) {
                 var bmpSpan = document.getElementById('bmp');                //assign var and gets ID previously defined (connects html & js by identification)
-                bmpSpan.textContent = msg.bmp;                            //sets value according to data sent by server (py)
+                bmpSpan.textContent = msg.bmp});                            //sets value according to data sent by server (py)
+                
+            socket.on('update_alt', function(msg) {
                 var altitudeSpan = document.getElementById('altitude');
                 altitudeSpan.textContent = msg.altitude;
                 var altLogSpan = document.getElementById('altLog');
@@ -74,9 +76,9 @@
                 var accLogSpan = document.getElementById('accLog');
                 accLogSpan.textContent = msg.accLog;                        //possible error due to 'msg' being a list/array
                 var dpsLogSpan = document.getElementById('dpsLog');
-                dpsLogSpan.textContent = msg.dpsLog});                  //possible error due to 'msg' being a list/array
+                dpsLogSpan.textContent = msg.dpsLog;                  //possible error due to 'msg' being a list/array
                 var posLogSpan = document.getElementById('posLog');
-                posLogSpan.textContent = msg.posLog;
+                posLogSpan.textContent = msg.posLog});
 
             // PROXIMITY
 
